@@ -24,6 +24,8 @@ def parse_args():
     parser.add_argument('--epochs', type=int, default=200, help='Total training epochs.')
     parser.add_argument('--num_head', type=int, default=2, help='Number of attention head.')
     parser.add_argument('--num_class', type=int, default=7, help='Number of class.')
+    parser.add_argument('--checkpoint', type=str, default=None, help='Path to the checkpoint to resume training from.')
+
     return parser.parse_args() 
 
 class ImbalancedDatasetSampler(data.sampler.Sampler):
@@ -88,6 +90,22 @@ def run_training():
 
     model = DDAMNet(num_class=args.num_class, num_head=args.num_head)
     model.to(device)
+    start_epoch = 1
+    if args.checkpoint is not None:
+        checkpoint = torch.load(args.checkpoint)
+        model.load_state_dict(checkpoint['model_state_dict'])
+
+        # Load optimizer state
+        optimizer = SAM(model.parameters(), torch.optim.Adam, lr=args.lr, rho=0.05, adaptive=False)
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+
+        # Get the starting epoch from the checkpoint
+        start_epoch = checkpoint['iter'] + 1  # Start from the next epoch
+
+    # Continue with data preparation and other initializations...
+
+    best_acc = 0
+
         
     data_transforms = transforms.Compose([
         transforms.Resize((112, 112)),
