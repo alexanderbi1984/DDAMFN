@@ -23,8 +23,8 @@ def parse_args():
     parser.add_argument('--workers', default=16, type=int, help='Number of data loading workers.')
     parser.add_argument('--epochs', type=int, default=200, help='Total training epochs.')
     parser.add_argument('--num_head', type=int, default=2, help='Number of attention head.')
-    parser.add_argument('--num_class', type=int, default=7, help='Number of class.')
-    parser.add_argument('--checkpoint', type=str, default=None, help='Path to the checkpoint to resume training from.')
+    parser.add_argument('--num_class', type=int, default=4, help='Number of class.')
+    # parser.add_argument('--checkpoint', type=str, default=None, help='Path to the checkpoint to resume training from.')
 
     return parser.parse_args() 
 
@@ -90,17 +90,17 @@ def run_training():
 
     model = DDAMNet(num_class=args.num_class, num_head=args.num_head)
     model.to(device)
-    start_epoch = 1
-    if args.checkpoint is not None:
-        checkpoint = torch.load(args.checkpoint)
-        model.load_state_dict(checkpoint['model_state_dict'])
-
-        # Load optimizer state
-        optimizer = SAM(model.parameters(), torch.optim.Adam, lr=args.lr, rho=0.05, adaptive=False)
-        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-
-        # Get the starting epoch from the checkpoint
-        start_epoch = checkpoint['iter'] + 1  # Start from the next epoch
+    # start_epoch = 1
+    # if args.checkpoint is not None:
+    #     checkpoint = torch.load(args.checkpoint)
+    #     model.load_state_dict(checkpoint['model_state_dict'])
+    #
+    #     # Load optimizer state
+    #     optimizer = SAM(model.parameters(), torch.optim.Adam, lr=args.lr, rho=0.05, adaptive=False)
+    #     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    #
+    #     # Get the starting epoch from the checkpoint
+    #     start_epoch = checkpoint['iter'] + 1  # Start from the next epoch
 
     # Continue with data preparation and other initializations...
 
@@ -245,6 +245,12 @@ def run_training():
                             'model_state_dict': model.state_dict(),
                              'optimizer_state_dict': optimizer.state_dict(),},
                             os.path.join('checkpoints_ver2.0', "affecnet8_epoch"+str(epoch)+"_acc"+str(acc)+".pth"))
+                tqdm.write('Model saved.')
+            elif args.num_class == 4 and  acc > 0.64:
+                torch.save({'iter': epoch,
+                            'model_state_dict': model.state_dict(),
+                             'optimizer_state_dict': optimizer.state_dict(),},
+                            os.path.join('checkpoints_ver2.0', "affecnet4_epoch"+str(epoch)+"_acc"+str(acc)+".pth"))
                 tqdm.write('Model saved.')
         scheduler.step()        
 if __name__ == "__main__":                    
