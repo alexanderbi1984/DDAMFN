@@ -85,7 +85,10 @@ class AttentionLoss(nn.Module):
 def run_training():
     args = parse_args()
 
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # check how many GPUs are available
+    print('Number of GPUs available:', torch.cuda.device_count())
+    print(device)
 
     if torch.cuda.is_available():
         torch.backends.cudnn.benchmark = True
